@@ -1,14 +1,17 @@
-# Data
-*.csv
-
-# Models
-*.pkl
-*.h5
-
 # Python
 __pycache__/
 *.pyc
+venv/
 
-# Env
+# Data
+data/raw/
+*.xlsx
+
+# Models (optional)
+models/
+
+# Colab
+*.ipynb_checkpoints/
+
+# Secrets
 .env
-    
