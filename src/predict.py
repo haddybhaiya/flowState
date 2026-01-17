@@ -74,6 +74,8 @@ if __name__ == "__main__":
             })
         from src.drought import drought_risk
         out["risk"] = out["predicted_gwl"].apply(drought_risk)
+        out["well"] = well
+        out["model"] = "LSTM"
 
         out.to_csv(
             os.path.join(OUTPUT_DIR, f"{well}_forecast.csv"),
