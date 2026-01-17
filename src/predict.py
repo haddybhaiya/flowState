@@ -72,7 +72,7 @@ if __name__ == "__main__":
         "day": list(range(1, FORECAST_DAYS + 1)),
         "predicted_gwl": preds
             })
-
+        from src.drought import drought_risk
         out["risk"] = out["predicted_gwl"].apply(drought_risk)
 
         out.to_csv(
