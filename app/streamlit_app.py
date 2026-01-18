@@ -17,153 +17,211 @@ PRED_DIR = os.path.join(BASE_DIR, "predictions")
 # PAGE CONFIGURATION
 # ============================================================================
 st.set_page_config(
-    page_title="flowState - Groundwater Forecasting",
+    page_title="FlowState - Groundwater Analytics",
     page_icon="💧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ============================================================================
-# CUSTOM STYLING
+# CUSTOM STYLING - Streamlit Compatible
 # ============================================================================
 st.markdown("""
     <style>
-    /* Main gradient background */
-    .main {
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    /* Global font */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Main background */
+    .stApp {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
-    /* Sidebar styling */
+    /* Sidebar */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
     }
     
-    [data-testid="stSidebar"] * {
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
         color: white !important;
     }
     
-    /* Content cards */
-    .stApp [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {
+    /* Main content area background */
+    .main .block-container {
         background-color: rgba(255, 255, 255, 0.95);
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
+        padding: 2rem 3rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        margin-top: 2rem;
     }
     
     /* Headers */
-    h1, h2, h3 {
+    h1 {
         color: #1f2937;
-        font-weight: 600;
+        font-weight: 800;
     }
     
-    /* Metric styling */
+    h2, h3 {
+        color: #1f2937;
+        font-weight: 700;
+    }
+    
+    /* Metric cards */
     [data-testid="stMetricValue"] {
-        font-size: 32px;
+        font-size: 2rem;
         font-weight: 700;
         color: #1f2937;
     }
     
     [data-testid="stMetricLabel"] {
-        font-size: 16px;
+        font-size: 0.9rem;
         color: #6b7280;
-        font-weight: 500;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
-    /* Button styling */
+    [data-testid="stMetricDelta"] {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    /* Metric container styling */
+    [data-testid="metric-container"] {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+    }
+    
+    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
         border-radius: 10px;
-        padding: 12px 28px;
+        padding: 0.6rem 1.5rem;
         font-weight: 600;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         width: 100%;
+        font-size: 0.95rem;
     }
     
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        border: none;
     }
     
     /* Info/Warning boxes */
     .stAlert {
-        background-color: rgba(255, 255, 255, 0.95);
+        background-color: white;
         border-radius: 10px;
-        border-left: 4px solid;
-        padding: 15px;
-        margin: 10px 0;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
     
-    /* Dataframe styling */
-    .dataframe {
-        border-radius: 10px;
+    /* Dataframe */
+    [data-testid="stDataFrame"] {
+        border-radius: 12px;
         overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
     /* Radio buttons */
     .stRadio > label {
         font-weight: 600;
         color: white;
+        font-size: 1rem;
+    }
+    
+    .stRadio [data-baseweb="radio"] > div {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin: 0.3rem 0;
     }
     
     /* Select box */
     .stSelectbox > label {
         font-weight: 600;
         color: white;
+        font-size: 0.95rem;
     }
     
-    /* Title styling */
-    .title-container {
-        text-align: center;
-        padding: 30px 0;
-        margin-bottom: 20px;
-    }
-    
-    .app-title {
-        font-size: 56px;
-        font-weight: 800;
+    /* Download button */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-        margin: 0;
-    }
-    
-    .app-subtitle {
-        font-size: 20px;
-        color: rgba(255, 255, 255, 0.95);
-        margin-top: 10px;
-    }
-    
-    /* Risk badges */
-    .risk-badge {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 20px;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6rem 1.5rem;
         font-weight: 600;
-        font-size: 14px;
-        margin: 5px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
     
-    .risk-normal {
-        background: #dcfce7;
-        color: #166534;
+    .stDownloadButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
     }
     
-    .risk-warning {
-        background: #fef3c7;
-        color: #92400e;
+    /* Divider */
+    hr {
+        margin: 2rem 0;
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(107, 114, 128, 0.3), transparent);
     }
     
-    .risk-drought {
-        background: #fee2e2;
-        color: #991b1b;
+    /* Chart containers */
+    [data-testid="stLineChart"] {
+        background: white;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
-    .risk-severe {
-        background: #fecaca;
-        color: #7f1d1d;
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: white;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    /* Remove default padding */
+    .block-container {
+        padding-top: 3rem;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: white;
+        border-radius: 8px 8px 0 0;
+        padding: 12px 24px;
+        font-weight: 600;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #667eea;
+        color: white;
+        border-color: #667eea;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -174,35 +232,42 @@ st.markdown("""
 def login():
     """Display login form with professional styling"""
     
+    # Header
+    st.markdown("""
+        <div style='text-align: center; padding: 3rem 0 2rem 0;'>
+            <h1 style='color: white; font-size: 3.5rem; font-weight: 800; text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); margin-bottom: 0.5rem;'>
+                💧 FlowState
+            </h1>
+            <p style='color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; margin-top: 0.5rem;'>
+                Groundwater Forecast & Analytics Platform
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
     # Create centered login container
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("""
-            <div class="title-container">
-                <h1 class="app-title">💧 FlowState</h1>
-                <p class="app-subtitle">Groundwater Forecast & Analytics Platform</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
+        st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("### 🔐 Login")
         st.markdown("Please enter your credentials to access the platform")
+        st.markdown("<br>", unsafe_allow_html=True)
         
         username = st.text_input("👤 Username", placeholder="Enter username")
         password = st.text_input("🔑 Password", type="password", placeholder="Enter password")
         
-        col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-        with col_btn2:
-            if st.button("🚀 Login", use_container_width=True):
-                if (
-                    username == st.secrets["auth"]["username"]
-                    and password == st.secrets["auth"]["password"]
-                ):
-                    st.session_state.logged_in = True
-                    st.success("✅ Login successful! Redirecting...")
-                    st.rerun()
-                else:
-                    st.error("❌ Invalid credentials. Please try again.")
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        if st.button("🚀 Login", use_container_width=True):
+            if (
+                username == st.secrets["auth"]["username"]
+                and password == st.secrets["auth"]["password"]
+            ):
+                st.session_state.logged_in = True
+                st.success("✅ Login successful! Redirecting...")
+                st.rerun()
+            else:
+                st.error("❌ Invalid credentials. Please try again.")
 
 def require_login():
     """Check authentication status"""
@@ -227,19 +292,19 @@ def get_risk_color(risk_level):
 
 def display_risk_badge(risk_level):
     """Display a styled risk badge"""
-    risk_class = {
-        "Normal": "risk-normal",
-        "Warning": "risk-warning",
-        "Drought": "risk-drought",
-        "Severe Drought": "risk-severe"
+    risk_styles = {
+        "Normal": "background: #dcfce7; color: #166534; padding: 0.5rem 1.2rem; border-radius: 25px; font-weight: 600; display: inline-block;",
+        "Warning": "background: #fef3c7; color: #92400e; padding: 0.5rem 1.2rem; border-radius: 25px; font-weight: 600; display: inline-block;",
+        "Drought": "background: #fee2e2; color: #991b1b; padding: 0.5rem 1.2rem; border-radius: 25px; font-weight: 600; display: inline-block;",
+        "Severe Drought": "background: #fecaca; color: #7f1d1d; padding: 0.5rem 1.2rem; border-radius: 25px; font-weight: 600; display: inline-block;"
     }
     
-    badge_class = risk_class.get(risk_level, "risk-normal")
+    style = risk_styles.get(risk_level, risk_styles["Normal"])
     
     st.markdown(f"""
-        <span class="risk-badge {badge_class}">
-            {risk_level}
-        </span>
+        <div style='margin: 1rem 0;'>
+            <span style='{style}'>{risk_level}</span>
+        </div>
     """, unsafe_allow_html=True)
 
 # ============================================================================
@@ -249,27 +314,32 @@ require_login()
 
 # App Header
 st.markdown("""
-    <div class="title-container">
-        <h1 class="app-title">💧 FlowState</h1>
-        <p class="app-subtitle">Advanced Groundwater Level Forecasting & Risk Assessment</p>
+    <div style='text-align: center; padding: 1rem 0 2rem 0;'>
+        <h1 style='color: #1f2937; font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem;'>
+            💧 FlowState
+        </h1>
+        <p style='color: #6b7280; font-size: 1.2rem;'>
+            Advanced Groundwater Level Forecasting & Risk Assessment
+        </p>
     </div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
 
 # Sidebar Navigation
-st.sidebar.markdown("### 🔍 Navigation")
-st.sidebar.markdown("Select your view mode to explore groundwater data")
-
-mode = st.sidebar.radio(
-    "Choose View Mode",
-    ["📍 Single Well Analysis", "🌍 All Wells Overview"],
-    index=0
-)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ℹ️ About")
-st.sidebar.info("FlowState provides real-time groundwater forecasting and drought risk assessment for water resource management.")
+with st.sidebar:
+    st.markdown("### 🔍 Navigation")
+    st.markdown("Select your view mode to explore groundwater data")
+    
+    mode = st.radio(
+        "Choose View Mode",
+        ["📍 Single Well Analysis", "🌍 All Wells Overview"],
+        index=0
+    )
+    
+    st.markdown("---")
+    st.markdown("### ℹ️ About")
+    st.info("FlowState provides real-time groundwater forecasting and drought risk assessment for water resource management.")
 
 # ============================================================================
 # SINGLE WELL VIEW
@@ -280,16 +350,18 @@ if mode == "📍 Single Well Analysis":
     files = [f for f in os.listdir(PRED_DIR) if f.endswith("_forecast.csv")]
     well_names = sorted([f.replace("_forecast.csv", "") for f in files])
     
-    # Well selector
-    st.sidebar.markdown("### 🎯 Select Well")
-    well = st.sidebar.selectbox(
-        "Choose a monitoring well",
-        well_names,
-        help="Select a well to view detailed forecasts and risk assessment"
-    )
-    
-    if st.sidebar.button("🔄 Refresh Data", use_container_width=True):
-        st.rerun()
+    # Well selector in sidebar
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 🎯 Select Well")
+        well = st.selectbox(
+            "Choose a monitoring well",
+            well_names,
+            help="Select a well to view detailed forecasts and risk assessment"
+        )
+        
+        if st.button("🔄 Refresh Data", use_container_width=True):
+            st.rerun()
     
     # Load and process data
     df = pd.read_csv(os.path.join(PRED_DIR, f"{well}_forecast.csv"))
@@ -297,16 +369,18 @@ if mode == "📍 Single Well Analysis":
     
     # Main content area
     st.markdown(f"## 📊 Analysis Dashboard - **{well}**")
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Key Metrics Row
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         current_level = df["predicted_gwl"].iloc[0]
+        delta_30d = df["predicted_gwl"].iloc[-1] - current_level
         st.metric(
             label="Current Forecast",
             value=f"{current_level:.2f} m",
-            delta=f"{df['predicted_gwl'].iloc[-1] - current_level:.2f} m (30d)"
+            delta=f"{delta_30d:.2f} m (30d)"
         )
     
     with col2:
@@ -347,10 +421,11 @@ if mode == "📍 Single Well Analysis":
     
     with col2:
         st.markdown("### 🚨 Risk Assessment")
+        st.markdown("<br>", unsafe_allow_html=True)
         
         worst_risk = df["risk"].value_counts().idxmax()
         
-        st.markdown(f"**Dominant Risk Level:**")
+        st.markdown("**Dominant Risk Level:**")
         display_risk_badge(worst_risk)
         
         st.markdown("<br>", unsafe_allow_html=True)
@@ -360,12 +435,13 @@ if mode == "📍 Single Well Analysis":
         risk_counts = df["risk"].value_counts()
         for risk, count in risk_counts.items():
             percentage = (count / len(df)) * 100
-            st.markdown(f"- {risk}: {count} days ({percentage:.1f}%)")
+            st.markdown(f"• {risk}: {count} days ({percentage:.1f}%)")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Detailed Forecast Table
     st.markdown("### 📋 Detailed 30-Day Forecast")
     
-    # Add color coding to the dataframe display
     display_df = df[["day", "predicted_gwl", "risk"]].copy()
     display_df.columns = ["Day", "Predicted GWL (m)", "Risk Level"]
     
@@ -374,6 +450,8 @@ if mode == "📍 Single Well Analysis":
         use_container_width=True,
         height=400
     )
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Insights Section
     st.markdown("### 🧠 AI-Generated Insights")
@@ -391,6 +469,8 @@ if mode == "📍 Single Well Analysis":
         actions = recommend_actions(worst_risk)
         for idx, action in enumerate(actions, 1):
             st.warning(f"**Action {idx}:** {action}")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Map Section
     st.markdown("### 🗺️ Well Location & Risk Visualization")
@@ -425,6 +505,7 @@ elif mode == "🌍 All Wells Overview":
     
     st.markdown("## 🌍 Regional Groundwater Risk Overview")
     st.markdown("Comprehensive analysis of all monitoring wells in the network")
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Load metadata
     meta = pd.read_csv(os.path.join(BASE_DIR, "data", "metadata", "wells.csv"))
@@ -464,17 +545,20 @@ elif mode == "🌍 All Wells Overview":
     
     with col2:
         critical_wells = len(overview[overview["risk"].isin(["Drought", "Severe Drought"])])
-        st.metric("Critical Wells", critical_wells, delta=f"{(critical_wells/len(overview)*100):.1f}%")
+        percentage = (critical_wells/len(overview)*100) if len(overview) > 0 else 0
+        st.metric("Critical Wells", critical_wells, delta=f"{percentage:.1f}%")
     
     with col3:
         warning_wells = len(overview[overview["risk"] == "Warning"])
-        st.metric("Warning Wells", warning_wells, delta=f"{(warning_wells/len(overview)*100):.1f}%")
+        percentage = (warning_wells/len(overview)*100) if len(overview) > 0 else 0
+        st.metric("Warning Wells", warning_wells, delta=f"{percentage:.1f}%")
     
     with col4:
         normal_wells = len(overview[overview["risk"] == "Normal"])
-        st.metric("Normal Wells", normal_wells, delta=f"{(normal_wells/len(overview)*100):.1f}%")
+        percentage = (normal_wells/len(overview)*100) if len(overview) > 0 else 0
+        st.metric("Normal Wells", normal_wells, delta=f"{percentage:.1f}%")
     
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
     
     # Regional Map
     st.markdown("### 🗺️ Regional Risk Map")
@@ -500,6 +584,8 @@ elif mode == "🌍 All Wells Overview":
     
     st_folium(m, width=None, height=600, use_container_width=True)
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    
     # Detailed Table
     st.markdown("### 📊 Comprehensive Well Data")
     
@@ -520,14 +606,15 @@ elif mode == "🌍 All Wells Overview":
         height=400
     )
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    
     # Download button
     csv = overview.to_csv(index=False)
     st.download_button(
         label="📥 Download Full Report (CSV)",
         data=csv,
         file_name="flowstate_all_wells_report.csv",
-        mime="text/csv",
-        use_container_width=False
+        mime="text/csv"
     )
 
 # ============================================================================
@@ -535,12 +622,14 @@ elif mode == "🌍 All Wells Overview":
 # ============================================================================
 st.markdown("---")
 st.markdown("""
-    <div style='text-align: center; color: white; padding: 20px;'>
-        <p style='font-size: 14px;'>
-            <b>FlowState v2.0</b> | Powered by Advanced ML Forecasting | 
+    <div style='text-align: center; padding: 1.5rem;'>
+        <p style='color: #1f2937; font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem;'>
+            FlowState v2.0 | Powered by Advanced ML Forecasting
+        </p>
+        <p style='color: #6b7280; font-size: 0.9rem; margin-bottom: 0.3rem;'>
             Built with ❤️ for sustainable water management
         </p>
-        <p style='font-size: 12px; opacity: 0.8;'>
+        <p style='color: #9ca3af; font-size: 0.85rem;'>
             © 2026 FlowState Analytics Platform
         </p>
     </div>
