@@ -1,3 +1,10 @@
+import sys
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(BASE_DIR)
+
+
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
@@ -6,8 +13,6 @@ import os
 from src.drought import drought_risk
 from src.insights import generate_insights, recommend_actions
 
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PRED_DIR = os.path.join(BASE_DIR, "predictions")
 
 # ---------------- AUTH ----------------
