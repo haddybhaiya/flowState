@@ -1,4 +1,6 @@
 import streamlit as st
+import folium
+from streamlit_folium import st_folium
 import pandas as pd
 import os
 from src.drought import drought_risk
@@ -53,3 +55,34 @@ st.dataframe(df[["day", "predicted_gwl", "risk"]])
 # Summary
 worst_risk = df["risk"].value_counts().idxmax()
 st.metric("Dominant Risk Level", worst_risk)
+# -------- MAP VIEW --------
+st.subheader("🗺️ Well Location & Drought Risk")
+
+meta = pd.read_csv(
+    os.path.join(BASE_DIR, "data", "metadata", "wells.csv")
+)
+
+row = meta[meta["well"] == well].iloc[0]
+
+risk_color = {
+    "Normal": "green",
+    "Warning": "orange",
+    "Drought": "red",
+    "Severe Drought": "darkred"
+}
+
+m = folium.Map(
+    location=[row.lat, row.lon],
+    zoom_start=9
+)
+
+folium.CircleMarker(
+    location=[row.lat, row.lon],
+    radius=10,
+    color=risk_color[worst_risk],
+    fill=True,
+    fill_opacity=0.7,
+    tooltip=f"{well} – {worst_risk}"
+).add_to(m)
+
+st_folium(m, width=700, height=400)
