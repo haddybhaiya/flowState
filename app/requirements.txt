@@ -5,3 +5,6 @@ tensorflow
 joblib
 scikit-learn
 matplotlib
+folium
+streamlit-folium
+
