@@ -40,6 +40,20 @@ def require_login():
 
 # -------------- APP ------------------
 require_login()
+# -------- PROJECT CREDIBILITY --------
+st.sidebar.markdown("## 📌 Project Info")
+
+st.sidebar.info(
+    """
+    **Project:** flowState – Groundwater Forecasting  
+    **Model:** LSTM Neural Network 
+    **Forecast Horizon:** 30 Days  
+    **Risk Levels:** Normal · Warning · Drought · Severe Drought  
+    **Data Source:** Historical Groundwater + Climate Indicators  
+    **Last Updated:** Jan 2026
+    """
+)
+# -------- VIEW MODE --------
 st.sidebar.title("🔍 View Mode")
 
 mode = st.sidebar.radio(
