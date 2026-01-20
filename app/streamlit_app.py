@@ -4,32 +4,42 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
-import os
+
 from src.drought import drought_risk
 from src.insights import generate_insights, recommend_actions
 
 PRED_DIR = os.path.join(BASE_DIR, "predictions")
 
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="flowState – Groundwater Intelligence",
+    page_icon="🌊",
+    layout="wide"
+)
+
 # ---------------- AUTH ----------------
 def login():
-    st.title("flowState – Groundwater Forecast")
+    st.markdown("## 🔐 Login to flowState")
+    st.caption("AI-powered groundwater forecasting platform")
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submit = st.form_submit_button("Login")
 
-    if st.button("Login"):
-        if (
-            username == st.secrets["auth"]["username"]
-            and password == st.secrets["auth"]["password"]
-        ):
-            st.session_state.logged_in = True
-        else:
-            st.error("Invalid credentials")
+        if submit:
+            if (
+                username == st.secrets["auth"]["username"]
+                and password == st.secrets["auth"]["password"]
+            ):
+                st.session_state.logged_in = True
+                st.success("Login successful")
+            else:
+                st.error("Invalid credentials")
 
 def require_login():
     if "logged_in" not in st.session_state:
@@ -38,62 +48,80 @@ def require_login():
         login()
         st.stop()
 
-# -------------- APP ------------------
+# ---------------- APP START ----------------
 require_login()
-# -------- PROJECT CREDIBILITY --------
-st.sidebar.markdown("## 📌 Project Info")
 
+# ---------------- HEADER ----------------
+st.markdown("# flowState")
+st.markdown(
+    "### Groundwater Forecasting & Drought Risk Intelligence System"
+)
+st.caption(
+    "Predict · Assess · Visualize · Act"
+)
+
+st.divider()
+
+# ---------------- SIDEBAR ----------------
+st.sidebar.markdown("## 📌 Project Overview")
 st.sidebar.info(
     """
-    **Project:** flowState – Groundwater Forecasting  
-    **Model:** LSTM Neural Network 
+    **Model:** LSTM-based Forecasting  
     **Forecast Horizon:** 30 Days  
-    **Risk Levels:** Normal · Warning · Drought · Severe Drought  
-    **Data Source:** Historical Groundwater + Climate Indicators  
-    **Last Updated:** Jan 2026
+    **Risk Levels:** Normal · Warning · Drought · Severe  
+    **Use Case:** Climate Resilience & Water Planning  
     """
 )
-# -------- VIEW MODE --------
-st.sidebar.title("🔍 View Mode")
 
+st.sidebar.markdown("## 🔍 View Mode")
 mode = st.sidebar.radio(
-    "Choose View",
+    "Choose Analysis Type",
     ["Single Well", "All Wells Overview"]
 )
 
+# ================= SINGLE WELL =================
 if mode == "Single Well":
 
-    st.sidebar.title("🔍 Select Well")
+    st.sidebar.markdown("## 🛢️ Select Well")
 
     files = [f for f in os.listdir(PRED_DIR) if f.endswith("_forecast.csv")]
     well_names = [f.replace("_forecast.csv", "") for f in files]
 
-    well = st.sidebar.selectbox("Well", well_names)
+    well = st.sidebar.selectbox("Well ID", well_names)
 
     df = pd.read_csv(os.path.join(PRED_DIR, f"{well}_forecast.csv"))
     df["risk"] = df["predicted_gwl"].apply(drought_risk)
 
-    st.subheader(f"📈 Groundwater Forecast – {well}")
+    worst_risk = df["risk"].value_counts().idxmax()
+
+    # -------- METRICS --------
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Selected Well", well)
+    col2.metric("Forecast Days", "30")
+    col3.metric("Dominant Risk", worst_risk)
+
+    st.divider()
+
+    # -------- FORECAST --------
+    st.markdown("## 📈 Groundwater Level Forecast")
     st.line_chart(df.set_index("day")["predicted_gwl"])
 
-    st.subheader("🚨 Drought Risk (Next 30 days)")
-    st.dataframe(df[["day", "predicted_gwl", "risk"]])
-
-    worst_risk = df["risk"].value_counts().idxmax()
-    st.metric("Dominant Risk Level", worst_risk)
+    with st.expander("📋 View Forecast Data"):
+        st.dataframe(df[["day", "predicted_gwl", "risk"]], use_container_width=True)
 
     # -------- INSIGHTS --------
-    st.subheader("🧠 Model Insights")
-    for i in generate_insights(df):
-        st.info(i)
+    st.markdown("## 🧠 Model Insights")
+    for insight in generate_insights(df):
+        st.info(insight)
 
     # -------- ACTIONS --------
-    st.subheader("🛠️ Recommended Actions")
-    for a in recommend_actions(worst_risk):
-        st.warning(a)
+    st.markdown("## 🛠️ Recommended Actions")
+    for action in recommend_actions(worst_risk):
+        st.warning(action)
 
     # -------- MAP --------
-    st.subheader("🗺️ Well Location & Drought Risk")
+    st.markdown("## 🗺️ Well Location & Risk Map")
 
     meta = pd.read_csv(
         os.path.join(BASE_DIR, "data", "metadata", "wells.csv")
@@ -110,22 +138,24 @@ if mode == "Single Well":
 
     m = folium.Map(
         location=[row.lat, row.lon],
-        zoom_start=9
+        zoom_start=9,
+        tiles="cartodbpositron"
     )
 
     folium.CircleMarker(
         location=[row.lat, row.lon],
-        radius=10,
+        radius=12,
         color=risk_color[worst_risk],
         fill=True,
-        fill_opacity=0.7,
+        fill_opacity=0.75,
         tooltip=f"{well} – {worst_risk}"
     ).add_to(m)
 
-    st_folium(m, width=700, height=400)
-if mode == "All Wells Overview":
+    st_folium(m, width=900, height=420)
 
-    st.subheader("🌍 All Wells – Drought Risk Overview")
+# ================= ALL WELLS =================
+else:
+    st.markdown("## 🌍 Regional Groundwater Risk Overview")
 
     meta = pd.read_csv(
         os.path.join(BASE_DIR, "data", "metadata", "wells.csv")
@@ -145,17 +175,18 @@ if mode == "All Wells Overview":
         row = meta[meta["well"] == well].iloc[0]
 
         records.append({
-            "well": well,
-            "lat": row.lat,
-            "lon": row.lon,
-            "risk": dominant
+            "Well": well,
+            "Latitude": row.lat,
+            "Longitude": row.lon,
+            "Risk": dominant
         })
 
     overview = pd.DataFrame(records)
 
     m = folium.Map(
-        location=[overview.lat.mean(), overview.lon.mean()],
-        zoom_start=7
+        location=[overview.Latitude.mean(), overview.Longitude.mean()],
+        zoom_start=7,
+        tiles="cartodbpositron"
     )
 
     risk_color = {
@@ -167,13 +198,15 @@ if mode == "All Wells Overview":
 
     for _, r in overview.iterrows():
         folium.CircleMarker(
-            location=[r.lat, r.lon],
+            location=[r.Latitude, r.Longitude],
             radius=8,
-            color=risk_color[r.risk],
+            color=risk_color[r.Risk],
             fill=True,
             fill_opacity=0.7,
-            tooltip=f"{r.well} – {r.risk}"
+            tooltip=f"{r.Well} – {r.Risk}"
         ).add_to(m)
 
-    st_folium(m, width=900, height=500)
-    st.dataframe(overview)
+    st_folium(m, width=1200, height=500)
+
+    with st.expander("📋 View All Wells Data"):
+        st.dataframe(overview, use_container_width=True)
